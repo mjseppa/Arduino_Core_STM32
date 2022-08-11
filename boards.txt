@@ -2256,6 +2256,16 @@ GenF4.menu.pnum.FK407M1.build.variant=STM32F4xx/F407V(E-G)T_F417V(E-G)T
 GenF4.menu.pnum.FK407M1.build.variant_h=variant_{build.board}.h
 GenF4.menu.pnum.FK407M1.build.peripheral_pins=-DCUSTOM_PERIPHERAL_PINS
 
+# GIMU F401RCT6
+GenF4.menu.pnum.GIMU_F401RC=GIMU F401RC
+GenF4.menu.pnum.GIMU_F401RC.upload.maximum_size=262144
+GenF4.menu.pnum.GIMU_F401RC.upload.maximum_data_size=65536
+GenF4.menu.pnum.GIMU_F401RC.build.board=GIMU_F401RC
+GenF4.menu.pnum.GIMU_F401RC.build.product_line=STM32F401xC
+GenF4.menu.pnum.GIMU_F401RC.build.variant=STM32F4xx/F401R(B-C-D-E)T
+GenF4.menu.pnum.GIMU_F401RC.build.variant_h=variant_{build.board}.h
+GenF4.menu.pnum.GIMU_F401RC.build.peripheral_pins=-DCUSTOM_PERIPHERAL_PINS
+
 # BlackPill F401CC
 GenF4.menu.pnum.BLACKPILL_F401CC=BlackPill F401CC
 GenF4.menu.pnum.BLACKPILL_F401CC.upload.maximum_size=262144
