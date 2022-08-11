@@ -56,10 +56,10 @@ HardwareTimer::HardwareTimer()
   * @param  Timer instance ex: TIM1, ...
   * @retval None
   */
-HardwareTimer::HardwareTimer(TIM_TypeDef *instance)
+HardwareTimer::HardwareTimer(TIM_TypeDef *instance, TimerResolution_t max_reload)
 {
   _timerObj.handle.Instance = nullptr;
-  setup(instance);
+  setup(instance, max_reload);
 }
 
 /**
