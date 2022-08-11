@@ -67,6 +67,11 @@ typedef enum {
 } TimerFormat_t;
 
 typedef enum {
+  TIMER_16B = 0x0000FFFF,
+  TIMER_32B = 0xFFFFFFFE,
+} TimerResolution_t;
+
+typedef enum {
   RESOLUTION_1B_COMPARE_FORMAT = 1,  // used for Dutycycle: [0 .. 1]
   RESOLUTION_2B_COMPARE_FORMAT,      // used for Dutycycle: [0 .. 3]
   RESOLUTION_3B_COMPARE_FORMAT,      // used for Dutycycle: [0 .. 7]
@@ -99,7 +104,7 @@ using callback_function_t = std::function<void(void)>;
 class HardwareTimer {
   public:
     HardwareTimer();
-    HardwareTimer(TIM_TypeDef *instance);
+    HardwareTimer(TIM_TypeDef *instance, TimerResolution_t max_reload = TIMER_16B);
     ~HardwareTimer();  // destructor
 
     void setup(TIM_TypeDef *instance); // Setup, only needed if no instance was passed to the constructor
@@ -167,6 +172,7 @@ class HardwareTimer {
 #endif
   private:
     TimerModes_t  _ChannelMode[TIMER_CHANNELS];
+    TimerResolution_t _max_reload;
     timerObj_t _timerObj;
     callback_function_t callbacks[1 + TIMER_CHANNELS]; //Callbacks: 0 for update, 1-4 for channels. (channel5/channel6, if any, doesn't have interrupt)
 };
