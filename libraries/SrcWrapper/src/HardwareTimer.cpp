@@ -30,7 +30,6 @@
 
 /* Private Defines */
 #define PIN_NOT_USED 0xFF
-#define MAX_RELOAD ((1 << 16) - 1) // Currently even 32b timers are used as 16b to have generic behavior
 
 /* Private Variables */
 timerObj_t *HardwareTimer_Handle[TIMER_NUM] = {NULL};
@@ -57,10 +56,10 @@ HardwareTimer::HardwareTimer()
   * @param  Timer instance ex: TIM1, ...
   * @retval None
   */
-HardwareTimer::HardwareTimer(TIM_TypeDef *instance)
+HardwareTimer::HardwareTimer(TIM_TypeDef *instance, TimerResolution_t max_reload)
 {
   _timerObj.handle.Instance = nullptr;
-  setup(instance);
+  setup(instance, max_reload);
 }
 
 /**
@@ -70,7 +69,7 @@ HardwareTimer::HardwareTimer(TIM_TypeDef *instance)
   * @param  Timer instance ex: TIM1, ...
   * @retval None
   */
-void HardwareTimer::setup(TIM_TypeDef *instance)
+void HardwareTimer::setup(TIM_TypeDef *instance, TimerResolution_t max_reload)
 {
   uint32_t index = get_timer_index(instance);
   if (index == UNKNOWN_TIMER) {
@@ -81,7 +80,6 @@ void HardwareTimer::setup(TIM_TypeDef *instance)
   if (_timerObj.handle.Instance) {
     Error_Handler();
   }
-
   HardwareTimer_Handle[index] = &_timerObj;
 
   _timerObj.handle.Instance = instance;
@@ -119,7 +117,7 @@ void HardwareTimer::setup(TIM_TypeDef *instance)
 
   /* Configure timer with some default values */
   _timerObj.handle.Init.Prescaler = 0;
-  _timerObj.handle.Init.Period = MAX_RELOAD;
+  _timerObj.handle.Init.Period = max_reload;
   _timerObj.handle.Init.CounterMode = TIM_COUNTERMODE_UP;
   _timerObj.handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 #if defined(TIM_RCR_REP)
@@ -127,6 +125,8 @@ void HardwareTimer::setup(TIM_TypeDef *instance)
 #endif
   _timerObj.handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   HAL_TIM_Base_Init(&(_timerObj.handle));
+  _max_reload = max_reload;
+
 }
 
 /**
@@ -528,13 +528,13 @@ void HardwareTimer::setOverflow(uint32_t overflow, TimerFormat_t format)
   switch (format) {
     case MICROSEC_FORMAT:
       period_cyc = overflow * (getTimerClkFreq() / 1000000);
-      Prescalerfactor = (period_cyc / 0x10000) + 1;
+      Prescalerfactor = (period_cyc / (_max_reload+1)) + 1;
       LL_TIM_SetPrescaler(_timerObj.handle.Instance, Prescalerfactor - 1);
       PeriodTicks = period_cyc / Prescalerfactor;
       break;
     case HERTZ_FORMAT:
       period_cyc = getTimerClkFreq() / overflow;
-      Prescalerfactor = (period_cyc / 0x10000) + 1;
+      Prescalerfactor = (period_cyc / (_max_reload+1)) + 1;
       LL_TIM_SetPrescaler(_timerObj.handle.Instance, Prescalerfactor - 1);
       PeriodTicks = period_cyc / Prescalerfactor;
       break;
@@ -855,9 +855,9 @@ void HardwareTimer::setCaptureCompare(uint32_t channel, uint32_t compare, TimerC
 
   // Special case when ARR is set to the max value, it is not possible to set CCRx to ARR+1 to reach 100%
   // Then set CCRx to max value. PWM is then 1/0xFFFF = 99.998..%
-  if ((__HAL_TIM_GET_AUTORELOAD(&(_timerObj.handle)) == MAX_RELOAD)
-      && (CCR_RegisterValue == MAX_RELOAD + 1)) {
-    CCR_RegisterValue = MAX_RELOAD;
+  if ((__HAL_TIM_GET_AUTORELOAD(&(_timerObj.handle)) == _max_reload)
+      && (CCR_RegisterValue == _max_reload + 1)) {
+    CCR_RegisterValue = _max_reload;
   }
 
   __HAL_TIM_SET_COMPARE(&(_timerObj.handle), timChannel, CCR_RegisterValue);
